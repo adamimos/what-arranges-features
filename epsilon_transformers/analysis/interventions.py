@@ -62,15 +62,6 @@ def fit_affine(X, Y, w, rcond=1e-10):
     return beta
 
 
-def weighted_r2_eval(beta, X, Y, w):
-    Yp = np.hstack([np.ones((len(X), 1)), X]) @ beta
-    w = w / w.sum()
-    ym = (Y * w[:, None]).sum(0)
-    ssr = (w[:, None] * (Y - Yp) ** 2).sum()
-    sst = (w[:, None] * (Y - ym) ** 2).sum()
-    return float(1 - ssr / sst) if sst > 0 else 0.0
-
-
 def rnn_states_all_steps(model, seqs, vocab, device, bs=2048):
     """Full carried state at every step. Returns (N, T, D) float32 where
     D = L*H for RNN/GRU and 2*L*H for LSTM (all h layers, then all c layers)."""

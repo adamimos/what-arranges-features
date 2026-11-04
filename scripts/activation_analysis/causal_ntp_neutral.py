@@ -1,7 +1,8 @@
 """
 "Everything except next-token space" transplant (recurrent architectures).
 
-Generalizes the 2-dim ker(Eᵀ) regression write of causal_belief_transplant.py:
+Generalizes the 2-dim ker(Eᵀ) regression write of an earlier belief-transplant design
+(not shipped; its patching backends are in epsilon_transformers/analysis/interventions.py):
 instead of writing a probe-derived vector, transplant the network's OWN full
 state difference (a_v − a_w) with only the next-token-visible direction removed.
 

@@ -1,6 +1,6 @@
 """
 Transformer channel-attribution patching (full activation-space swaps, no
-regression writes) — follow-up to causal_belief_transplant.py.
+regression writes) — follow-up to the belief-transplant patching experiments.
 
 Two channels carry w-vs-v prefix information to the branch predictions:
   C1 "prefix_upper":  prefix positions 0..6, resid_pre L1 <- donor run

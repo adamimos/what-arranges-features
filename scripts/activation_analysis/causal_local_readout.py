@@ -1,5 +1,5 @@
 """
-Local-readout causal test (companion to causal_belief_transplant.py).
+Local-readout causal test (companion to the belief-transplant patching experiments).
 
 Question: are the probe's belief coordinates causally read for the LOCAL
 next-token prediction at the patched position? Uses ANTI-matched pairs
