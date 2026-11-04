@@ -1,0 +1,58 @@
+# Stage 1 multi-seed — Bloch Walk (tom_quantum) × {LSTM, GRU, RNN} × seeds {0,1,2,3,42}
+# Hyperparameters identical to experiment_config_rnn.yaml;
+# the ONLY changes are: Bloch Walk process only, and a 5-seed sweep. init_scheme defaults to
+# 'default' (the 'rich' init collapses on these processes). Do NOT tune individual seeds.
+#
+# NOTE: `seed` is intentionally NOT set in the base model_config. The launcher does
+# `cfg.update(model_config)` AFTER building each sweep combination
+# (launcher_cuda_parallel_rnn.py:34), so a base seed would silently override the swept seed.
+# Keep seed ONLY under sweep_config.
+sweep_id: multiseed_bloch_rnn
+
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false          # off for unattended runs; all metrics go to StructuredLogger on disk
+  wandb_project: "quantum_rnn_experiments"
+  process_dir: "./process_data"
+  val_every: 1 # after n epochs, ~ is None
+  scheduler: true
+  save_every: 100
+
+train_config:
+  batches_per_epoch: 200
+  bos: false
+  n_epochs: 20000
+  batch_size: 128
+  learning_rate: 1.0e-4
+
+model_config:
+  n_ctx: 8
+  dropout: 0.0
+  bidirectional: false
+  dtype: float32
+
+sweep_config:
+  model_config:
+    hidden_size:
+      - 64
+    num_layers:
+      - 4
+    rnn_type:
+      - "LSTM"
+      - "GRU"
+      - "RNN"
+    seed:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 42
+  train_config:
+    learning_rate:
+      - 1.0e-4
+  process_config:
+    - name: "tom_quantum"    # Bloch Walk
+      alpha: 1.0
+      beta: 7.14142842854285

@@ -1,0 +1,28 @@
+# TODO: confirm the author list and order, add ORCIDs, the proceedings details and the license.
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "What Arranges Features in Activation Space? Non-Classical Predictive Geometry in Next-Token Predictors"
+type: software
+authors:
+  - family-names: Shai
+    given-names: Adam
+  - family-names: Elliott
+    given-names: Thomas
+  - family-names: Riechers
+    given-names: Paul
+repository-code: "TODO: GitHub URL"
+preferred-citation:
+  type: conference-paper
+  title: "What Arranges Features in Activation Space? Non-Classical Predictive Geometry in Next-Token Predictors"
+  authors:
+    - family-names: Shai
+      given-names: Adam
+    - family-names: Elliott
+      given-names: Thomas
+    - family-names: Riechers
+      given-names: Paul
+  collection-title: "Advances in Neural Information Processing Systems"
+  year: 2026
+  identifiers:
+    - type: other
+      value: "arXiv:2507.07432"

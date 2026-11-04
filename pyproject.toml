@@ -1,0 +1,49 @@
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["epsilon_transformers"]
+
+[project]
+name = "epsilon_transformers"
+version = "0.1"
+description = "Computational Mechanics of Transformer Models"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "torch",
+    "numpy",
+    "pandas",
+    "seaborn",
+    "matplotlib",
+    "wandb",
+    "scikit-learn",
+    "plotly",
+    "dash",
+    "dash-bootstrap-components",
+    "jupyter-dash",
+    "sentencepiece>=0.1.99",
+    "transformer_lens",
+    "pytest",
+    "PyDrive",
+    "black",
+    "mypy",
+    "jaxtyping",
+    "fire",
+    "pydantic",
+    "wandb",
+    "python-dotenv",
+    "tqdm",
+    "boto3",
+    "aioboto3",
+    "joblib",
+    "h5py",
+    "huggingface_hub",
+    "pyvista>=0.48.0",
+    "kaleido>=1.3.0",
+]
+
+[project.optional-dependencies]
+# Only needed by scripts/paper_figures/fig_appendix_bars.py (overlays bars on the original PDF pages).
+figures = ["pypdf>=4"]

@@ -1,0 +1,52 @@
+# Stage 2 multi-seed — Mess3 × transformer × seeds {0,1,2,3,42}
+# Source of truth: experiment_config_transformer_mess3_bloch.yaml (heavy 200x128 config).
+# seed ONLY in sweep_config (base-model_config seed would be clobbered by launcher cfg.update).
+sweep_id: multiseed_mess3_transformer
+
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false
+  wandb_project: "quantum_transformer"
+  process_dir: "./process_data"
+  val_every: 1
+  scheduler: true
+  save_every: 100
+  compile: true
+
+train_config:
+  batches_per_epoch: 200
+  bos: false
+  n_epochs: 20000
+
+model_config:
+  n_ctx: 8
+  act_fn: "relu"
+  normalization_type: "LN"
+  attn_only: false
+  dtype: float32
+
+sweep_config:
+  train_config:
+    learning_rate:
+      - 1.0e-4
+    batch_size:
+      - 128
+  model_config:
+    d_head:
+      - 16
+    n_layers:
+      - 4
+    n_heads:
+      - 4
+    seed:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 42
+  process_config:
+    - name: "mess3"
+      x: 0.05
+      a: 0.85

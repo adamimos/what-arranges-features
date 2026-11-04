@@ -1,0 +1,45 @@
+# qRRXOR LSTM at lr=1e-4, batch=16 (the fragile setting; some seeds collapse to uniform output). Comparison rows in qrrxor_robust_score.py.
+# Exact config of results/20260503215800_lstm_default_cpu (copied from its sweep_config.yaml). Launch with scripts/launcher_rnn_parallel.py.
+sweep_id: 20260503215800_lstm_default_cpu
+
+global_config:
+  device: cuda
+  output_dir: ./results
+  parallel: true
+  process_dir: ./process_data
+  save_every: 100
+  scheduler: true
+  val_every: 1
+  wandb: false
+  wandb_project: quantum_transformer
+model_config:
+  bidirectional: false
+  dropout: 0.0
+  dtype: float32
+  hidden_size: 64
+  init_scheme: default
+  n_ctx: 10
+  num_layers: 4
+  rnn_type: LSTM
+sweep_config:
+  model_config:
+    seed:
+    - 42
+    - 123
+    - 456
+    - 789
+    - 1000
+  process_config:
+  - epsilon: 0.02
+    name: quantum_rrxor
+    phi: 1.5707963267948966
+    theta: 0.7853981633974483
+  train_config:
+    batch_size:
+    - 16
+    learning_rate:
+    - 0.0001
+train_config:
+  batches_per_epoch: 20
+  bos: false
+  n_epochs: 20000

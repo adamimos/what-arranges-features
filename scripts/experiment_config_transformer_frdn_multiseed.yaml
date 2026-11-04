@@ -1,0 +1,53 @@
+# Stage 2 multi-seed — FRDN (fanizza) × transformer × seeds {0,1,2,3,42}
+# Source of truth: experiment_config_transformer_frdn.yaml (LIGHT 20x16, scheduler FALSE).
+# FRDN appears only in the appendix (its order-3 classical comparison is underdetermined).
+# seed ONLY in sweep_config (base seed would be clobbered by launcher cfg.update).
+sweep_id: multiseed_frdn_transformer
+
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false
+  wandb_project: "quantum_transformer"
+  process_dir: "./process_data"
+  val_every: 1
+  scheduler: false
+  save_every: 100
+  compile: true
+
+train_config:
+  batches_per_epoch: 20
+  bos: false
+  n_epochs: 20000
+
+model_config:
+  n_ctx: 8
+  act_fn: "relu"
+  normalization_type: "LN"
+  attn_only: false
+  dtype: float32
+
+sweep_config:
+  train_config:
+    learning_rate:
+      - 1.0e-4
+    batch_size:
+      - 16
+  model_config:
+    d_head:
+      - 16
+    n_layers:
+      - 4
+    n_heads:
+      - 4
+    seed:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 42
+  process_config:
+    - name: "fanizza"    # FRDN
+      alpha: 2000.
+      lamb: 0.49

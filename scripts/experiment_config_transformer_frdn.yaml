@@ -1,0 +1,41 @@
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false   # set true to log to Weights & Biases (needs `wandb login`); metrics are always written to loss.csv
+  wandb_project: "quantum_transformer"
+  process_dir: "./process_data"
+  val_every: 1 # after n epochs, ~ is None
+  scheduler: false
+  save_every: 100
+
+train_config:
+  batches_per_epoch: 20
+  bos: false
+  n_epochs: 20000
+
+model_config:
+  n_ctx: 8
+  act_fn: "relu"
+  normalization_type: "LN"
+  attn_only: false
+  seed: 42
+  dtype: float32
+
+sweep_config:
+  train_config:
+    learning_rate:
+      - 1.0e-4
+    batch_size:
+      - 16
+  model_config:
+    d_head:
+      - 16
+    n_layers:
+      - 4
+    n_heads:
+      - 4
+  process_config:
+    - name: "fanizza"
+      alpha: 2000.
+      lamb: 0.49

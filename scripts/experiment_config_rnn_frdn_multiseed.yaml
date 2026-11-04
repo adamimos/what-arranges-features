@@ -1,0 +1,53 @@
+# Stage 2 multi-seed (RNN) — FRDN (fanizza) × {LSTM,GRU,RNN} × seeds {0,1,2,3,42}
+# Source of truth: experiment_config_rnn.yaml (200x128, scheduler true). FRDN appears only in the
+# appendix. 1 proc x 3 arch x 5 seed = 15 runs.
+# seed ONLY in sweep_config (base seed would be clobbered by launcher cfg.update).
+sweep_id: multiseed_frdn_rnn
+
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false
+  wandb_project: "quantum_rnn_experiments"
+  process_dir: "./process_data"
+  val_every: 1
+  scheduler: true
+  save_every: 100
+
+train_config:
+  batches_per_epoch: 200
+  bos: false
+  n_epochs: 20000
+  batch_size: 128
+  learning_rate: 1.0e-4
+
+model_config:
+  n_ctx: 8
+  dropout: 0.0
+  bidirectional: false
+  dtype: float32
+
+sweep_config:
+  model_config:
+    hidden_size:
+      - 64
+    num_layers:
+      - 4
+    rnn_type:
+      - "LSTM"
+      - "GRU"
+      - "RNN"
+    seed:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 42
+  train_config:
+    learning_rate:
+      - 1.0e-4
+  process_config:
+    - name: "fanizza"    # FRDN
+      alpha: 2000.
+      lamb: 0.49

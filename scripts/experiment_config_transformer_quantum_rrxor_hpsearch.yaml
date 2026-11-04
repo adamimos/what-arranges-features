@@ -1,0 +1,68 @@
+# qRRXOR robust-hyperparameter SEARCH (transformer) — screen phase, reduced 6k-epoch budget.
+# Based on the frozen hero config (experiment_config_transformer_quantum_rrxor_hero_3seed.yaml):
+# muP, n_ctx=10, hero process phi=pi/2/theta=pi/4/eps=0.02, gpt2 init. Only changes: n_epochs 6000
+# (screen), sweep LR x batch on DEV seeds {7,11,13} (held out from report seeds 42/123/456/789/1000).
+# seed is sweep-only (flows through muP re-init per hero-config note). compile on for speed.
+sweep_id: hpsearch_qrrxor_transformer
+
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false
+  wandb_project: "quantum_transformer"
+  process_dir: "./process_data"
+  val_every: 1
+  scheduler: true
+  save_every: 100
+  compile: true
+
+train_config:
+  batches_per_epoch: 20
+  bos: false
+  n_epochs: 6000
+
+model_config:
+  n_ctx: 10
+  act_fn: "relu"
+  normalization_type: "LN"
+  attn_only: false
+  dtype: float32
+  init_mode: "gpt2"
+  init_weights: true
+  initializer_range: 0.1
+
+mup_config:
+  enabled: true
+  base_width: 64
+  init_range: 0.1
+  input_init_std: 1.0
+  zero_init_readout: true
+  attn_scale_mode: mup
+
+sweep_config:
+  train_config:
+    learning_rate:
+      - 3.0e-5
+      - 1.0e-4
+      - 3.0e-4
+      - 1.0e-3
+    batch_size:
+      - 16
+      - 64
+  model_config:
+    seed:
+      - 7
+      - 11
+      - 13
+    d_head:
+      - 16
+    n_layers:
+      - 4
+    n_heads:
+      - 4
+  process_config:
+    - name: "quantum_rrxor"
+      phi: 1.5707963267948966   # pi/2
+      theta: 0.7853981633974483 # pi/4
+      epsilon: 0.02

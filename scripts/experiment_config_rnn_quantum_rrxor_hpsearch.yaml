@@ -1,0 +1,52 @@
+# qRRXOR robust-hyperparameter SEARCH (LSTM) — screen phase, reduced 6k-epoch budget.
+# Based on experiment_config_rnn_quantum_rrxor_default.yaml: LSTM, n_ctx=10, hero process,
+# default init. Only changes: n_epochs 6000 (screen), sweep LR x batch on DEV seeds {7,11,13}
+# (held out from report seeds 42/123/456/789/1000). seed + batch are sweep-only (no clobber).
+sweep_id: hpsearch_qrrxor_lstm
+
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false
+  wandb_project: "quantum_rnn_experiments"
+  process_dir: "./process_data"
+  val_every: 1
+  scheduler: true
+  save_every: 100
+
+train_config:
+  batches_per_epoch: 20
+  bos: false
+  n_epochs: 6000
+
+model_config:
+  n_ctx: 10
+  hidden_size: 64
+  num_layers: 4
+  rnn_type: "LSTM"
+  dropout: 0.0
+  bidirectional: false
+  init_scheme: default
+  dtype: float32
+
+sweep_config:
+  train_config:
+    learning_rate:
+      - 3.0e-5
+      - 1.0e-4
+      - 3.0e-4
+      - 1.0e-3
+    batch_size:
+      - 16
+      - 64
+  model_config:
+    seed:
+      - 7
+      - 11
+      - 13
+  process_config:
+    - name: "quantum_rrxor"
+      phi: 1.5707963267948966   # pi/2
+      theta: 0.7853981633974483 # pi/4
+      epsilon: 0.02

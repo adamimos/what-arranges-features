@@ -1,0 +1,58 @@
+# Stage 1 multi-seed — Bloch Walk (tom_quantum) × transformer × seeds {0,1,2,3,42}
+# Hyperparameters identical to the submitted
+# transformer Bloch run (experiment_config_transformer_mess3_bloch.yaml); the ONLY
+# change is a 5-seed sweep. Do NOT tune individual seeds.
+#
+# NOTE: `seed` is intentionally NOT set in the base model_config below. The launcher
+# does `cfg.update(model_config)` AFTER building each sweep combination
+# (launcher_cuda_parallel.py:30), so a base seed would silently override the swept
+# seed and every run would secretly be seed 42. Keep seed ONLY under sweep_config.
+sweep_id: multiseed_bloch_transformer
+
+global_config:
+  output_dir: "./results"
+  device: cuda
+  parallel: true
+  wandb: false          # off for unattended runs; all metrics go to StructuredLogger on disk
+  wandb_project: "quantum_transformer"
+  process_dir: "./process_data"
+  val_every: 1 # after n epochs, ~ is None
+  scheduler: true
+  save_every: 100
+  compile: true         # torch.compile ~1.8x on these launch-bound width-64 transformers; checkpoints saved from original module (clean keys)
+
+train_config:
+  batches_per_epoch: 200
+  bos: false
+  n_epochs: 20000
+
+model_config:
+  n_ctx: 8
+  act_fn: "relu"
+  normalization_type: "LN"
+  attn_only: false
+  dtype: float32
+
+sweep_config:
+  train_config:
+    learning_rate:
+      - 1.0e-4
+    batch_size:
+      - 128
+  model_config:
+    d_head:
+      - 16
+    n_layers:
+      - 4
+    n_heads:
+      - 4
+    seed:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 42
+  process_config:
+    - name: "tom_quantum"    # Bloch Walk
+      alpha: 1.0
+      beta: 7.14142842854285
