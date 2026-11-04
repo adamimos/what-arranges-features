@@ -10,6 +10,7 @@ venv/
 # Data and outputs (checkpoints and results come from Hugging Face; see README)
 results/
 process_data/
+run_predictions_RCOND_FINAL/
 shuffle_results*/
 figures/
 Figs/

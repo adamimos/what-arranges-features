@@ -45,5 +45,5 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Only needed by scripts/paper_figures/fig_appendix_bars.py (overlays bars on the original PDF pages).
+# Only needed by paper_figures/appendix_architecture_bars.py (overlays bars on the original PDF pages).
 figures = ["pypdf>=4"]

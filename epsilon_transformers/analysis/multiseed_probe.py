@@ -128,3 +128,54 @@ def final_val_lb(run_dir: Path) -> float:
     with open(f) as fh:
         rows = list(csv.DictReader(fh))
     return float(rows[-1]["val_loss_mean"]) if rows else float("inf")
+
+
+def _design(X, mean, std):
+    return np.hstack([np.ones((len(X), 1)), (X - mean) / std])
+
+
+def _fit(Xb, Y, w):
+    s = np.sqrt(w / w.sum())[:, None]
+    beta, *_ = np.linalg.lstsq(Xb * s, Y * s, rcond=RCOND)
+    return beta
+
+
+def scores(X, Y, weights):
+    """Same folds/standardization/weighting as _weighted_r2, plus RMSEs."""
+    N = X.shape[0]
+    w = weights / weights.sum()
+    idx = np.arange(N)
+    fs = N // N_FOLDS
+    r2s, pred = [], np.zeros_like(Y)
+    for f in range(N_FOLDS):
+        a = f * fs
+        b = a + fs if f < N_FOLDS - 1 else N
+        te, tr = idx[a:b], np.concatenate([idx[:a], idx[b:]])
+        mean, std = X[tr].mean(0), X[tr].std(0)
+        std[std < 1e-12] = 1.0
+        beta = _fit(_design(X[tr], mean, std), Y[tr], w[tr])
+        yp = _design(X[te], mean, std) @ beta
+        pred[te] = yp
+        wt = w[te] / w[te].sum()
+        ym = (Y[te] * wt[:, None]).sum(0)
+        ss_res = (wt[:, None] * (Y[te] - yp) ** 2).sum()
+        ss_tot = (wt[:, None] * (Y[te] - ym) ** 2).sum()
+        r2s.append(1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0)
+    rmse_cv = float(np.sqrt((w[:, None] * (Y - pred) ** 2).sum()))
+    mean, std = X.mean(0), X.std(0)
+    std[std < 1e-12] = 1.0
+    Xb = _design(X, mean, std)
+    rmse_in = float(np.sqrt((w[:, None] * (Y - Xb @ _fit(Xb, Y, w)) ** 2).sum()))
+    return float(np.mean(r2s)), rmse_cv, rmse_in
+
+
+def acts_for(run_dir, ckpt, cfg, proc, device):
+    if "rnn_type" in cfg["model_config"]:
+        m, _ = load_rnn(run_dir, ckpt, device, proc["vocab"])
+        a = extract_rnn_concat(m, proc["contexts"], proc["vocab"], device)
+        del m
+    else:
+        a = extract_transformer_concat(run_dir, ckpt, proc["contexts"], device)
+    if "cuda" in str(device):
+        torch.cuda.empty_cache()
+    return a
