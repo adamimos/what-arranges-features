@@ -1,11 +1,11 @@
 # Stage 1 multi-seed — Bloch Walk (tom_quantum) × transformer × seeds {0,1,2,3,42}
 # Hyperparameters identical to the submitted
-# transformer Bloch run (experiment_config_transformer_mess3_bloch.yaml); the ONLY
+# transformer Bloch run (configs/seed42/transformer_mess3_bloch.yaml); the ONLY
 # change is a 5-seed sweep. Do NOT tune individual seeds.
 #
 # NOTE: `seed` is intentionally NOT set in the base model_config below. The launcher
 # does `cfg.update(model_config)` AFTER building each sweep combination
-# (launcher_cuda_parallel.py:30), so a base seed would silently override the swept
+# (training/launch_transformer_sweep.py:30), so a base seed would silently override the swept
 # seed and every run would secretly be seed 42. Keep seed ONLY under sweep_config.
 sweep_id: multiseed_bloch_transformer
 

@@ -1,5 +1,5 @@
 # Stage 2 multi-seed — Moon (post_quantum) × transformer × seeds {0,1,2,3,42}
-# Source of truth: experiment_config_transformer_moon.yaml (LIGHT 20x16 config, scheduler true).
+# Source of truth: configs/seed42/transformer_moon.yaml (LIGHT 20x16 config, scheduler true).
 # seed ONLY in sweep_config (base seed would be clobbered by launcher cfg.update).
 sweep_id: multiseed_moon_transformer
 

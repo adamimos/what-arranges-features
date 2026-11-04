@@ -1,5 +1,5 @@
 # qRRXOR LSTM (lr=1e-4, batch=64), seeds 42/123/456. Fig. 4 (a-h) uses seed 456 (run_2).
-# Exact config of results/20260504050111_lstm_b64_full (copied from its sweep_config.yaml). Launch with scripts/launcher_rnn_parallel.py.
+# Exact config of results/20260504050111_lstm_b64_full (copied from its sweep_config.yaml). Launch with training/launch_rnn_sweep_seed_named.py.
 sweep_id: 20260504050111_lstm_b64_full
 
 global_config:

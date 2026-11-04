@@ -1,5 +1,5 @@
 # Stage 2 multi-seed (RNN) — FRDN (fanizza) × {LSTM,GRU,RNN} × seeds {0,1,2,3,42}
-# Source of truth: experiment_config_rnn.yaml (200x128, scheduler true). FRDN appears only in the
+# Source of truth: configs/seed42/rnn.yaml (200x128, scheduler true). FRDN appears only in the
 # appendix. 1 proc x 3 arch x 5 seed = 15 runs.
 # seed ONLY in sweep_config (base seed would be clobbered by launcher cfg.update).
 sweep_id: multiseed_frdn_rnn

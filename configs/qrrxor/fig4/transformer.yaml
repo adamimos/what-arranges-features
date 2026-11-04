@@ -1,5 +1,5 @@
 # qRRXOR transformer, submission hyperparameters (muP, lr=1e-4, batch=16), seeds 42/123/456. Fig. 4 (i,j) uses seed 123 (run_1).
-# Exact config of results/20260424220339 (copied from its sweep_config.yaml). Launch with scripts/launcher_cuda_parallel.py.
+# Exact config of results/20260424220339 (copied from its sweep_config.yaml). Launch with training/launch_transformer_sweep.py.
 sweep_id: 20260424220339
 
 global_config:

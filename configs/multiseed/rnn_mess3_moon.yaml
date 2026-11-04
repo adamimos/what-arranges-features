@@ -1,5 +1,5 @@
 # Stage 2 multi-seed (RNN) — Mess3 + Moon(post_quantum) × {LSTM,GRU,RNN} × seeds {0,1,2,3,42}
-# Source of truth: experiment_config_rnn.yaml (200x128, scheduler true). FRDN split into its
+# Source of truth: configs/seed42/rnn.yaml (200x128, scheduler true). FRDN split into its
 # own config so it runs last / is cleanly cancellable. 2 proc x 3 arch x 5 seed = 30 runs.
 # seed ONLY in sweep_config (base seed would be clobbered by launcher cfg.update).
 sweep_id: multiseed_stage2_rnn

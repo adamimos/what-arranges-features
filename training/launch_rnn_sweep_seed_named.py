@@ -1,4 +1,4 @@
-"""Parallel-GPU launcher for train_rnn.py — adapted from launcher_cuda_parallel.py."""
+"""Parallel-GPU launcher for train_rnn.py (run directories named by seed); adapted from launch_transformer_sweep.py."""
 
 import argparse
 import itertools
@@ -119,10 +119,10 @@ def main():
                 env['OMP_NUM_THREADS'] = str(args.cpu_threads_per_worker)
                 env['MKL_NUM_THREADS'] = str(args.cpu_threads_per_worker)
                 env['CUDA_VISIBLE_DEVICES'] = ''  # hide broken/wedged GPUs
-                cmd = ['python', './scripts/train_rnn.py', '--config', cpath]
+                cmd = ['python', './training/train_rnn.py', '--config', cpath]
                 slot_label = 'cpu'
             else:
-                cmd = ['python', './scripts/train_rnn.py',
+                cmd = ['python', './training/train_rnn.py',
                        '--config', cpath, '--parallel', '--gpu_id', str(slot)]
                 slot_label = f'cuda:{slot}'
 

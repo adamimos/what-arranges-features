@@ -1,4 +1,4 @@
-# launcher.py
+# Sweep launcher: one train_transformer.py process per sweep combination.
 
 import argparse
 import itertools
@@ -115,10 +115,10 @@ def main():
                 env['OMP_NUM_THREADS'] = str(args.cpu_threads_per_worker)
                 env['MKL_NUM_THREADS'] = str(args.cpu_threads_per_worker)
                 env['CUDA_VISIBLE_DEVICES'] = ''
-                cmd = ['python', './scripts/train.py', '--config', run_cfg['config_path']]
+                cmd = ['python', './training/train_transformer.py', '--config', run_cfg['config_path']]
                 slot_label = 'cpu'
             else:
-                cmd = ['python', './scripts/train.py',
+                cmd = ['python', './training/train_transformer.py',
                        '--config', run_cfg['config_path'],
                        '--parallel', '--gpu_id', str(slot)]
                 slot_label = f'cuda:{slot}'

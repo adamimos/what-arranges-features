@@ -1,5 +1,5 @@
 # qRRXOR LSTM at lr=1e-4, batch=16 (the fragile setting; some seeds collapse to uniform output). Comparison rows in qrrxor_robust_score.py.
-# Exact config of results/20260503215800_lstm_default_cpu (copied from its sweep_config.yaml). Launch with scripts/launcher_rnn_parallel.py.
+# Exact config of results/20260503215800_lstm_default_cpu (copied from its sweep_config.yaml). Launch with training/launch_rnn_sweep_seed_named.py.
 sweep_id: 20260503215800_lstm_default_cpu
 
 global_config:

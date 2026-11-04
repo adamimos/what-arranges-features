@@ -1,4 +1,4 @@
-# launcher.py
+# Sweep launcher: one train_rnn.py process per sweep combination.
 
 import argparse
 import itertools
@@ -103,7 +103,7 @@ def main():
                 yaml.dump(run_cfg, f)
 
             cmd = [
-                'python', './scripts/train_rnn.py',
+                'python', './training/train_rnn.py',
                 '--config', run_cfg['config_path'],
                 '--parallel',
                 '--gpu_id', f'{gpu_id}'
