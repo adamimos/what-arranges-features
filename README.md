@@ -37,8 +37,8 @@ Run every command below **from the repository root with `PYTHONPATH=.`**, e.g.
 
 | Dataset | Contents | Used by |
 |---|---|---|
-| [`SimplexAI/quantum-representations`](https://huggingface.co/datasets/SimplexAI/quantum-representations) (already public) | The original single-seed (seed 42) runs: 16 models (4 architectures x 4 processes), 201 checkpoints each, plus the pre-computed regression analysis | `Fig2.py`, `Fig3.py`, `Fig4.py`, `FigAppendix.py` (downloaded automatically with `--data-source huggingface`) |
-| `HF_DATASET_URL_TODO` | The 5-seed grid, the qRRXOR models, and pre-computed CSVs (below) | everything under `scripts/` |
+| [`SimplexAI/quantum-representations`](https://huggingface.co/datasets/SimplexAI/quantum-representations) (already public) | The original single-seed (seed 42) runs: 16 models (4 architectures x 4 processes), 201 checkpoints each, plus the pre-computed regression analysis | `paper_figures/fig2_geometry.py`, `paper_figures/fig3_training.py`, `paper_figures/appendix_rsa.py`, `paper_figures/appendix_architectures.py` (downloaded automatically with `--data-source huggingface`) |
+| `HF_DATASET_URL_TODO` | The 5-seed grid, the qRRXOR models, and pre-computed CSVs (below) | everything under `experiments/` |
 
 Download the second dataset into the repository root so that its `results/` directory lands
 at `./results/` (the `--include` filters keep the dataset's own README from overwriting this
@@ -66,78 +66,80 @@ directories they name. A run counts as converged when the last `val_loss_mean` i
 
 | Paper item | Script | Command | Runtime |
 |---|---|---|---|
-| Fig. 2, geometry panels (seed 42) | `Fig2.py` | `python Fig2.py --data-source huggingface` | not timed (CPU; download-bound) |
-| Fig. 2, RMSE bars (5 seeds, 95% t-intervals); "12-37x below random init" | `scripts/paper_metrics/fig2_metrics_multiseed.py` then `scripts/paper_figures/fig2_barcol.py` | `python scripts/paper_metrics/fig2_metrics_multiseed.py --device cuda:0` then `python scripts/paper_figures/fig2_barcol.py results/paper_metrics/fig2_metrics_multiseed.csv Figs/Fig2.png fig2_mainresult_5seed.png` | 3.1 h for 60 runs (about 3 min/run) |
-| Fig. 3, geometry over training | `Fig3.py` | `python Fig3.py --data-source huggingface` | not timed |
-| Fig. 4, qRRXOR NTP-preserving shuffle (LSTM seed 456, transformer seed 123) | `FigBestLSTM_pyvista.py` | `python FigBestLSTM_pyvista.py --variant 6panel` | not timed (CPU; PyVista off-screen) |
-| §6, 5-seed numbers (R² 0.85 / 0.99 / 0.99 / 0.70, 200-draw shuffle null, p < 0.005, 65% vs 84-99%) | `scripts/activation_analysis/qrrxor_shuffle_null_analysis.py` | `python scripts/activation_analysis/qrrxor_shuffle_null_analysis.py --device cuda:0` | not timed |
+| Fig. 2, geometry panels (seed 42) | `paper_figures/fig2_geometry.py` | `python paper_figures/fig2_geometry.py --data-source huggingface` | not timed (CPU; download-bound) |
+| Fig. 2, RMSE bars (5 seeds, 95% t-intervals); "12-37x below random init" | `experiments/main_grid/fig2_rmse_5seed.py` then `paper_figures/fig2_rmse_bars.py` | `python experiments/main_grid/fig2_rmse_5seed.py --device cuda:0` then `python paper_figures/fig2_rmse_bars.py results/paper_metrics/fig2_metrics_multiseed.csv Figs/Fig2.png fig2_mainresult_5seed.png` | 3.1 h for 60 runs (about 3 min/run) |
+| Fig. 3, geometry over training | `paper_figures/fig3_training.py` | `python paper_figures/fig3_training.py --data-source huggingface` | not timed |
+| Fig. 4, qRRXOR NTP-preserving shuffle (LSTM seed 456, transformer seed 123) | `paper_figures/fig4_qrrxor_shuffle.py` | `python paper_figures/fig4_qrrxor_shuffle.py --variant 6panel` | not timed (CPU; PyVista off-screen) |
+| §6, 5-seed numbers (R² 0.85 / 0.99 / 0.99 / 0.70, 200-draw shuffle null, p < 0.005, 65% vs 84-99%) | `experiments/shuffle/shuffle_null_5seed.py` | `python experiments/shuffle/shuffle_null_5seed.py --device cuda:0` | not timed |
 | §5 Interventions, main-text summary | see App. Interventions below | | |
 
 Fig. 4 also reads two small cached files, which are in the dataset. To regenerate them:
 
 ```bash
-python scripts/activation_analysis/run_shuffle_analysis.py --results_dir results/20260424220339 --outdir shuffle_results_quantum_rrxor_hero_3seed
-python scripts/activation_analysis/compute_lstm_curves.py --sweep_dirs results/20260504050111_lstm_b64_full --out figures/beyond_ntp/lstm_curves_b64_full.joblib
+python experiments/shuffle/shuffle_curves.py --results_dir results/20260424220339 --outdir shuffle_results_quantum_rrxor_hero_3seed
+python experiments/shuffle/shuffle_curves_lstm.py --sweep_dirs results/20260504050111_lstm_b64_full --out figures/beyond_ntp/lstm_curves_b64_full.joblib
 ```
 
 The published Fig. 4 is this script's output with panel titles restyled by hand.
-`FigBestLSTM_pyvista.py` needs an off-screen OpenGL backend for PyVista (OSMesa/EGL, or
+`paper_figures/fig4_qrrxor_shuffle.py` needs an off-screen OpenGL backend for PyVista (OSMesa/EGL, or
 `xvfb-run`).
 
 ### Appendix
 
 | Paper item | Script | Command | Runtime |
 |---|---|---|---|
-| Pairwise geometry preservation (RSA figure) | `Fig4.py` | `python Fig4.py --data-source huggingface` | not timed |
-| Extended architecture figures (one per architecture): geometry panels (seed 42) | `FigAppendix.py` | `python FigAppendix.py --data-source huggingface --model-type all` | not timed |
-| Extended architecture figures: 5-seed bars (FRDN row uses in-sample RMSE) | `scripts/paper_metrics/fig2_metrics_multiseed.py`, `scripts/paper_metrics/frdn_metrics_multiseed.py`, then `scripts/paper_figures/fig_appendix_bars.py` | `python scripts/paper_metrics/frdn_metrics_multiseed.py --device cuda:0` then `python scripts/paper_figures/fig_appendix_bars.py results/paper_metrics/fig2_metrics_multiseed.csv,results/paper_metrics/frdn_metrics_multiseed.csv <FigAppendix output>.pdf transformer <out>.pdf` (ARCHKEY: `transformer`, `LSTM`, `GRU`, `vanilla_RNN`) | FRDN: not timed |
-| Higher-order classical baselines: figure, table, "order 4: R² 0.27-0.35" | `scripts/activation_analysis/orderk_sweep.py` then `scripts/paper_figures/fig_orderk.py` | `python scripts/activation_analysis/orderk_sweep.py --device cuda:0` then `python scripts/paper_figures/fig_orderk.py results/orderk_sweep_agg.csv orderk_baselines.pdf` | 27 min for 60 runs |
-| Cross-entropy of order-k predictors vs the entropy rate (exact, no models) | `scripts/paper_metrics/orderk_loss.py` | `python scripts/paper_metrics/orderk_loss.py` | seconds (CPU) |
-| qRRXOR hyperparameter selection on dev seeds 7/11/13 (6k-epoch screen) | `scripts/activation_analysis/hpsearch_qrrxor_score.py` | `python scripts/activation_analysis/hpsearch_qrrxor_score.py --device cuda:0` (transformer + LSTM); `... --dirs results/hpsearch_qrrxor_grurnn --out results/hpsearch_qrrxor_grurnn_scores.csv` (GRU + RNN) | not timed |
-| qRRXOR convergence of the 20 report runs; comparison with the lr=1e-4 / batch-16 setting | `scripts/activation_analysis/qrrxor_robust_score.py`, `qrrxor_robust_grurnn_score.py` | `python scripts/activation_analysis/qrrxor_robust_score.py --device cuda:0` then `python scripts/activation_analysis/qrrxor_robust_grurnn_score.py --device cuda:0` | not timed |
-| Interventions, recurrent patching (96.0 / 95.2 / 92.7%; invisible-only writes 89.3 / 83.4 / 59.5%; matched random 7-13%) | `scripts/activation_analysis/causal_ntp_neutral.py` | `python scripts/activation_analysis/causal_ntp_neutral.py --run_dir results/qrrxor_robust_{gru,lstm,rnn}/run_<i>_... --device cuda:0` (once per run) | about 30 s/run |
-| Interventions, scored against the donor's future (98.6-99.1%) | `scripts/activation_analysis/causal_verify_target_adjudication.py` | `python scripts/activation_analysis/causal_verify_target_adjudication.py --device cuda:0` | not timed |
-| Interventions, untrained GRUs (0.0%; probe CV R² about 0.7) | `scripts/activation_analysis/causal_verify_rnn.py` | `python scripts/activation_analysis/causal_verify_rnn.py --device cuda:0` | not timed |
-| Interventions, erasure (recurrent and transformer) | `scripts/activation_analysis/causal_ker_ablation_rnn_audit.py`, `causal_ker_ablation_audit.py`, then `causal_ker_audit_aggregate.py` | `python scripts/activation_analysis/causal_ker_ablation_rnn_audit.py --run_dir results/qrrxor_robust_rnn/run_<i>_... --device cuda:0`; `python scripts/activation_analysis/causal_ker_ablation_audit.py --run_dir results/qrrxor_robust_transformer/run_<i>_... --device cuda:0`; `python scripts/activation_analysis/causal_ker_audit_aggregate.py` | not timed |
-| Interventions, transformer visible-component writes (7 / 90 / 96%) | `scripts/activation_analysis/causal_local_readout.py` | `python scripts/activation_analysis/causal_local_readout.py --device cuda:0` | not timed |
-| Interventions, transformer routing (89.8% / 18.2%) | `scripts/activation_analysis/causal_xf_channels.py` | `python scripts/activation_analysis/causal_xf_channels.py --run_dir results/qrrxor_robust_transformer/run_<i>_... --device cuda:0` (once per run) | not timed |
-| Interventions, random readout-orthogonal edits (0.00007-0.0002 nats) | `scripts/activation_analysis/causal_verify_orthonoise.py` | `python scripts/activation_analysis/causal_verify_orthonoise.py --device cuda:0` | not timed |
-| Interventions, "Verification" (second implementation) | `scripts/activation_analysis/causal_verify_xf.py`, `causal_verify_rnn.py`, `causal_verify_xf_profile.py`, `causal_verify_target_adjudication.py` | `python scripts/activation_analysis/causal_verify_xf.py --device cuda:0` (and likewise for the others) | not timed |
-| "Represented but not used": 91% / untrained 0.53 / beyond-last-3-tokens 0.83 vs 0.00 | `scripts/activation_analysis/qrrxor_repr_audit.py` | `python scripts/activation_analysis/qrrxor_repr_audit.py --device cuda:0 --parts abc` | not timed |
-| "Represented but not used": held-out 3-token ending (GRU 0.91, transformer -0.58) | `scripts/activation_analysis/heldout_suffix_extrapolation.py` | `python scripts/activation_analysis/heldout_suffix_extrapolation.py --device cuda:0` | not timed |
-| Top-3 principal components of activations | `scripts/paper_metrics/pca_views.py` | `python scripts/paper_metrics/pca_views.py --device cuda:0` | not timed |
+| Pairwise geometry preservation (RSA figure) | `paper_figures/appendix_rsa.py` | `python paper_figures/appendix_rsa.py --data-source huggingface` | not timed |
+| Extended architecture figures (one per architecture): geometry panels (seed 42) | `paper_figures/appendix_architectures.py` | `python paper_figures/appendix_architectures.py --data-source huggingface --model-type all` | not timed |
+| Extended architecture figures: 5-seed bars (FRDN row uses in-sample RMSE) | `experiments/main_grid/fig2_rmse_5seed.py`, `experiments/main_grid/frdn_rmse_5seed.py`, then `paper_figures/appendix_architecture_bars.py` | `python experiments/main_grid/frdn_rmse_5seed.py --device cuda:0` then `python paper_figures/appendix_architecture_bars.py results/paper_metrics/fig2_metrics_multiseed.csv,results/paper_metrics/frdn_metrics_multiseed.csv <appendix_architectures.py output>.pdf transformer <out>.pdf` (ARCHKEY: `transformer`, `LSTM`, `GRU`, `vanilla_RNN`) | FRDN: not timed |
+| Higher-order classical baselines: figure, table, "order 4: R² 0.27-0.35" | `experiments/orderk/orderk_probe_sweep.py` then `paper_figures/appendix_orderk.py` | `python experiments/orderk/orderk_probe_sweep.py --device cuda:0` then `python paper_figures/appendix_orderk.py results/orderk_sweep_agg.csv orderk_baselines.pdf` | 27 min for 60 runs |
+| Cross-entropy of order-k predictors vs the entropy rate (exact, no models) | `experiments/orderk/orderk_cross_entropy.py` | `python experiments/orderk/orderk_cross_entropy.py` | seconds (CPU) |
+| qRRXOR hyperparameter selection on dev seeds 7/11/13 (6k-epoch screen) | `experiments/qrrxor_hparams/score_hpsearch.py` | `python experiments/qrrxor_hparams/score_hpsearch.py --device cuda:0` (transformer + LSTM); `... --dirs results/hpsearch_qrrxor_grurnn --out results/hpsearch_qrrxor_grurnn_scores.csv` (GRU + RNN) | not timed |
+| qRRXOR convergence of the 20 report runs; comparison with the lr=1e-4 / batch-16 setting | `experiments/qrrxor_hparams/score_report_runs.py`, `experiments/qrrxor_hparams/score_report_runs_gru_rnn.py` | `python experiments/qrrxor_hparams/score_report_runs.py --device cuda:0` then `python experiments/qrrxor_hparams/score_report_runs_gru_rnn.py --device cuda:0` | not timed |
+| Interventions, recurrent patching (96.0 / 95.2 / 92.7%; invisible-only writes 89.3 / 83.4 / 59.5%; matched random 7-13%) | `experiments/interventions/recurrent_patching.py` | `python experiments/interventions/recurrent_patching.py --run_dir results/qrrxor_robust_{gru,lstm,rnn}/run_<i>_... --device cuda:0` (once per run) | about 30 s/run |
+| Interventions, scored against the donor's future (98.6-99.1%) | `experiments/interventions/verify_donor_future.py` | `python experiments/interventions/verify_donor_future.py --device cuda:0` | not timed |
+| Interventions, untrained GRUs (0.0%; probe CV R² about 0.7) | `experiments/interventions/verify_recurrent.py` | `python experiments/interventions/verify_recurrent.py --device cuda:0` | not timed |
+| Interventions, erasure (recurrent and transformer) | `experiments/interventions/erasure_recurrent.py`, `experiments/interventions/erasure_transformer.py`, then `experiments/interventions/erasure_aggregate.py` | `python experiments/interventions/erasure_recurrent.py --run_dir results/qrrxor_robust_rnn/run_<i>_... --device cuda:0`; `python experiments/interventions/erasure_transformer.py --run_dir results/qrrxor_robust_transformer/run_<i>_... --device cuda:0`; `python experiments/interventions/erasure_aggregate.py` | not timed |
+| Interventions, transformer visible-component writes (7 / 90 / 96%) | `experiments/interventions/transformer_visible_writes.py` | `python experiments/interventions/transformer_visible_writes.py --device cuda:0` | not timed |
+| Interventions, transformer routing (89.8% / 18.2%) | `experiments/interventions/transformer_routing.py` | `python experiments/interventions/transformer_routing.py --run_dir results/qrrxor_robust_transformer/run_<i>_... --device cuda:0` (once per run) | not timed |
+| Interventions, random readout-orthogonal edits (0.00007-0.0002 nats) | `experiments/interventions/verify_orthogonal_noise.py` | `python experiments/interventions/verify_orthogonal_noise.py --device cuda:0` | not timed |
+| Interventions, "Verification" (second implementation) | `experiments/interventions/verify_transformer.py`, `experiments/interventions/verify_recurrent.py`, `experiments/interventions/verify_transformer_profile.py`, `experiments/interventions/verify_donor_future.py` | `python experiments/interventions/verify_transformer.py --device cuda:0` (and likewise for the others) | not timed |
+| "Represented but not used": 91% / untrained 0.53 / beyond-last-3-tokens 0.83 vs 0.00 | `experiments/represented_not_used/representation_audit.py` | `python experiments/represented_not_used/representation_audit.py --device cuda:0 --parts abc` | not timed |
+| "Represented but not used": held-out 3-token ending (GRU 0.91, transformer -0.58) | `experiments/represented_not_used/heldout_suffix.py` | `python experiments/represented_not_used/heldout_suffix.py --device cuda:0` | not timed |
+| Top-3 principal components of activations | `experiments/pca/top3_pcs.py` | `python experiments/pca/top3_pcs.py --device cuda:0` | not timed |
 | Process definitions | `epsilon_transformers/process/transition_matrices.py` (`get_matrix_from_args`), `GHMM.py` | | |
 
-`scripts/activation_analysis/run_regression_analysis.py` is the original analysis pipeline
+`experiments/main_grid/seed42_regression_pipeline.py` is the original analysis pipeline
 whose outputs are in `SimplexAI/quantum-representations`. It reads checkpoints from S3 and
 needs AWS credentials in a `.env` file (see `epsilon_transformers/analysis/load_data.py` for
 the variable names). You do not need it to reproduce the figures.
 
 ## Training
 
-All models are trained on next-token cross-entropy only. Configs live in
-`scripts/experiment_config_*.yaml`; each launches a sweep into `results/<sweep_id>/`.
-Transformers use `scripts/launcher_cuda_parallel.py`, recurrent models
-`scripts/launcher_cuda_parallel_rnn.py` (the two submission-era qRRXOR LSTM sweeps use
-`scripts/launcher_rnn_parallel.py`). The launchers call `python`, so run them inside the
-environment (`uv run` or an activated venv).
+All models are trained on next-token cross-entropy only. Configs live in `configs/`; each
+launches a sweep into `results/<sweep_id>/`. Transformers use
+`training/launch_transformer_sweep.py`, recurrent models `training/launch_rnn_sweep.py`
+(the two submission-era qRRXOR LSTM sweeps in `configs/qrrxor/fig4/lstm.yaml` and
+`configs/qrrxor/comparison/` use `training/launch_rnn_sweep_seed_named.py`, which names run
+directories by seed). The launchers start one `training/train_transformer.py` or
+`training/train_rnn.py` process per sweep combination and call `python`, so run them from the
+repository root inside the environment (`uv run` or an activated venv).
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 PYTHONPATH=. uv run python scripts/launcher_cuda_parallel.py \
-    --config scripts/experiment_config_transformer_bloch_multiseed.yaml --runs_per_gpu 2
-CUDA_VISIBLE_DEVICES=2 PYTHONPATH=. uv run python scripts/launcher_cuda_parallel_rnn.py \
-    --config scripts/experiment_config_rnn_bloch_multiseed.yaml --runs_per_gpu 3
+CUDA_VISIBLE_DEVICES=0,1 PYTHONPATH=. uv run python training/launch_transformer_sweep.py \
+    --config configs/multiseed/transformer_bloch.yaml --runs_per_gpu 2
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=. uv run python training/launch_rnn_sweep.py \
+    --config configs/multiseed/rnn_bloch.yaml --runs_per_gpu 3
 ```
 
 | Config(s) | What | Output | Runtime per run |
 |---|---|---|---|
-| `experiment_config_transformer_{mess3_bloch,moon,frdn}.yaml`, `experiment_config_rnn.yaml` | Original single-seed (42) grid; these produced the `SimplexAI/quantum-representations` runs | `results/<timestamp>/` | about 1 GPU-hour |
-| `experiment_config_transformer_{bloch,mess3,moon,frdn}_multiseed.yaml` | 5-seed grid (seeds 0, 1, 2, 3, 42), transformer | `results/multiseed_<process>_transformer/` | Bloch/Mess3 about 8 h (200 x 128 batches, `torch.compile`); Moon/FRDN about 0.8 h |
-| `experiment_config_rnn_{bloch,stage2,frdn}_multiseed.yaml` | 5-seed grid, LSTM / GRU / vanilla RNN (`stage2` = Mess3 + Moon) | `results/multiseed_{bloch,stage2,frdn}_rnn/` | about 2.5-3.5 h |
-| `experiment_config_transformer_quantum_rrxor_hpsearch.yaml`, `experiment_config_rnn_quantum_rrxor_hpsearch{,_grurnn}.yaml` | qRRXOR learning-rate x batch-size screen on dev seeds 7, 11, 13 (6k epochs) | `results/hpsearch_qrrxor_*` | about 0.1-0.2 h |
-| `experiment_config_transformer_quantum_rrxor_robust.yaml`, `experiment_config_rnn_quantum_rrxor_robust{,_gru,_rnn}.yaml` | qRRXOR report runs (seeds 42, 123, 456, 789, 1000) at the selected settings: lr 3e-4 / batch 64 (transformer, LSTM, GRU), lr 3e-5 / batch 64 (vanilla RNN) | `results/qrrxor_robust_*` | 0.2-0.8 h |
-| `experiment_config_transformer_quantum_rrxor_submission.yaml`, `experiment_config_rnn_quantum_rrxor_submission_lstm.yaml` | qRRXOR models shown in Fig. 4 | `results/20260424220339/`, `results/20260504050111_lstm_b64_full/` | about 1.1-1.3 h |
-| `experiment_config_rnn_quantum_rrxor_fragile_lstm.yaml` | qRRXOR LSTM at lr 1e-4 / batch 16 (some seeds collapse to uniform output) | `results/20260503215800_lstm_default_cpu/` | not timed |
+| `configs/seed42/transformer_{mess3_bloch,moon,frdn}.yaml`, `configs/seed42/rnn.yaml` | Original single-seed (42) grid; these produced the `SimplexAI/quantum-representations` runs | `results/<timestamp>/` | about 1 GPU-hour |
+| `configs/multiseed/transformer_{bloch,mess3,moon,frdn}.yaml` | 5-seed grid (seeds 0, 1, 2, 3, 42), transformer | `results/multiseed_<process>_transformer/` | Bloch/Mess3 about 8 h (200 x 128 batches, `torch.compile`); Moon/FRDN about 0.8 h |
+| `configs/multiseed/rnn_{bloch,mess3_moon,frdn}.yaml` | 5-seed grid, LSTM / GRU / vanilla RNN | `results/multiseed_{bloch,stage2,frdn}_rnn/` (`stage2` = Mess3 + Moon) | about 2.5-3.5 h |
+| `configs/qrrxor/hpsearch/{transformer,lstm,gru_rnn}.yaml` | qRRXOR learning-rate x batch-size screen on dev seeds 7, 11, 13 (6k epochs) | `results/hpsearch_qrrxor_*` | about 0.1-0.2 h |
+| `configs/qrrxor/report/{transformer,lstm,gru,rnn}.yaml` | qRRXOR report runs (seeds 42, 123, 456, 789, 1000) at the selected settings: lr 3e-4 / batch 64 (transformer, LSTM, GRU), lr 3e-5 / batch 64 (vanilla RNN) | `results/qrrxor_robust_*` | 0.2-0.8 h |
+| `configs/qrrxor/fig4/{transformer,lstm}.yaml` | qRRXOR models shown in Fig. 4 | `results/20260424220339/`, `results/20260504050111_lstm_b64_full/` | about 1.1-1.3 h |
+| `configs/qrrxor/comparison/lstm_lr1e-4_b16.yaml` | qRRXOR LSTM at lr 1e-4 / batch 16 (some seeds collapse to uniform output) | `results/20260503215800_lstm_default_cpu/` | not timed |
 
 Notes:
 
@@ -151,21 +153,29 @@ Notes:
 ## Repository layout
 
 ```
-epsilon_transformers/      process definitions (process/), models and training utilities (training/)
-scripts/
-  train.py, train_rnn.py   single-run training
-  launcher_*.py            sweep launchers
-  experiment_config_*.yaml training configs
-  activation_analysis/     probing, scoring, shuffle and intervention analyses
-  paper_metrics/           Fig. 2 / appendix bar metrics, order-k loss, PCA views
-  paper_figures/           bar overlays for Fig. 2 and the appendix figures, order-k figure
-  data_manager.py          Hugging Face download helper for Fig*.py
-Fig2.py Fig3.py Fig4.py FigAppendix.py FigBestLSTM_pyvista.py   figure scripts
+configs/                      training configs
+  seed42/                     original single-seed grid (the public dataset's runs)
+  multiseed/                  5-seed grid
+  qrrxor/                     report/, hpsearch/, fig4/, comparison/
+training/                     train_transformer.py, train_rnn.py, sweep launchers
+epsilon_transformers/
+  process/                    process definitions (transition matrices, GHMMs)
+  training/                   models, data loaders, logging
+  analysis/                   shared analysis code: checkpoint loading, process targets,
+                              probes and regression, shuffle control, intervention machinery
+experiments/                  analysis entry points, by part of the paper
+  main_grid/                  5-seed R² / RMSE scorers (Fig. 2, appendix); seed-42 pipeline
+  orderk/                     higher-order classical baselines
+  pca/                        top principal components of activations
+  qrrxor_hparams/             qRRXOR hyperparameter screen and report-run convergence
+  shuffle/                    NTP-preserving shuffle (§6 numbers, Fig. 4 cached curves)
+  represented_not_used/       "represented but not used" analyses
+  interventions/              patching, erasure, routing and verification experiments
+paper_figures/                one script per paper figure, plus data_manager.py (HF download)
 ```
 
-`scripts/activation_analysis/causal_belief_transplant.py` and `causal_phase0.py` are
-libraries for the intervention scripts. Their own `main()` functions are earlier designs whose
-numbers the paper does not quote.
+Scripts in `experiments/` and `paper_figures/` import shared code only from
+`epsilon_transformers`, never from each other.
 
 ## Citation
 
