@@ -34,22 +34,17 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-import torch
-import torch.nn as nn
 
-from scripts.activation_analysis.run_shuffle_analysis import (
-    load_run_config, list_checkpoints, load_model,
-)
-from scripts.activation_analysis.enumerate_process import enumerate_process_data
-from scripts.activation_analysis.shuffle_control_simple import _weighted_r2
+from epsilon_transformers.analysis.checkpoints import load_run_config, list_checkpoints
+from epsilon_transformers.analysis.process_targets import enumerate_process_data
+from epsilon_transformers.analysis.weighted_probe import _weighted_r2
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args
-from epsilon_transformers.training.networks import RNNWrapper
+from epsilon_transformers.analysis.multiseed_probe import final_val_lb
+from epsilon_transformers.analysis.qrrxor_scoring import (
+    N_FOLDS, RCOND, RCOND_STAB, CONV_THRESH, SHUFFLE_SEED, load_rnn, extract_transformer,
+    extract_rnn, weighted_corr,
+)
 
-N_FOLDS = 5
-RCOND = 1e-10        # primary probe rcond (as used on Bloch)
-RCOND_STAB = 1e-3    # stabilized probe rcond for ill-conditioned high-LR checkpoints
-CONV_THRESH = 1.005
-SHUFFLE_SEED = 0
 SEEDS = [7, 11, 13]
 
 TRANSFORMER_DIR = "results/hpsearch_qrrxor_transformer"
@@ -71,65 +66,6 @@ def build_process_targets(cfg):
         "ntp_opt": proc["ntp"][:, 0], "perm": perm,
         "belief_dim": int(proc["beliefs"].shape[1]), "N": int(len(proc["weights"])),
     }
-
-
-def final_val_lb(run_dir: Path) -> float:
-    f = run_dir / "loss.csv"
-    if not f.exists():
-        return float("inf")
-    with open(f) as fh:
-        rows = list(csv.DictReader(fh))
-    return float(rows[-1]["val_loss_mean"]) if rows else float("inf")
-
-
-def load_rnn(run_dir, ckpt, device, vocab):
-    cfg = load_run_config(str(run_dir))
-    mc = cfg["model_config"]
-    cls = getattr(nn, mc["rnn_type"].upper())
-    rnn = cls(input_size=vocab, hidden_size=mc["hidden_size"],
-              num_layers=mc["num_layers"], dropout=mc.get("dropout", 0.0),
-              batch_first=True, bidirectional=mc.get("bidirectional", False)).to(device)
-    out = nn.Linear(mc["hidden_size"], vocab).to(device)
-    model = RNNWrapper(rnn, out).to(device)
-    state = torch.load(f"{run_dir}/{ckpt}", map_location=device, weights_only=True)
-    model.load_state_dict(state)
-    model.eval()
-    return model
-
-
-def weighted_corr(a, b, w):
-    wn = w / w.sum()
-    ma = (a * wn).sum(); mb = (b * wn).sum()
-    cov = (wn * (a - ma) * (b - mb)).sum()
-    va = np.sqrt((wn * (a - ma) ** 2).sum()); vb = np.sqrt((wn * (b - mb) ** 2).sum())
-    return float(cov / max(va * vb, 1e-12))
-
-
-def extract_transformer(run_dir, ckpt, contexts, device):
-    m = load_model(str(run_dir), ckpt, device)
-    names = [f"blocks.{i}.hook_resid_pre" for i in range(m.cfg.n_layers)]
-    inp = torch.from_numpy(contexts).long().to(device)
-    with torch.no_grad():
-        logits, cache = m.run_with_cache(inp, names_filter=names)
-    acts = np.concatenate([cache[k][:, -1, :].cpu().numpy() for k in names], axis=1)
-    p0 = torch.softmax(logits[:, -1, :], dim=-1)[:, 0].cpu().numpy()
-    del m
-    if "cuda" in str(device):
-        torch.cuda.empty_cache()
-    return acts, p0
-
-
-def extract_rnn(model, contexts, vocab, device):
-    x = torch.from_numpy(contexts).long().to(device)
-    oh = torch.zeros(*x.shape, vocab, device=device)
-    oh.scatter_(2, x.unsqueeze(-1), 1.0)
-    with torch.no_grad():
-        output, hidden = model.rnn(oh)
-        h_n = hidden[0] if isinstance(hidden, tuple) else hidden
-        logits = model.output_layer(output[:, -1, :])
-    acts = torch.cat([h_n[i] for i in range(h_n.shape[0])], dim=1).cpu().numpy()
-    p0 = torch.softmax(logits, dim=-1)[:, 0].cpu().numpy()
-    return acts, p0
 
 
 def analyze_run(run_dir: Path, proc, device):

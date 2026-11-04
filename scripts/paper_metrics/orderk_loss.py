@@ -13,7 +13,7 @@ import glob
 
 import numpy as np
 
-from scripts.activation_analysis.run_shuffle_analysis import load_run_config
+from epsilon_transformers.analysis.checkpoints import load_run_config
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args
 
 PROCS = {"Bloch": "results/multiseed_bloch_transformer", "Mess3": "results/multiseed_mess3_transformer",

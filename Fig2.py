@@ -619,7 +619,7 @@ if __name__ == "__main__":
         sys.path.insert(0, str(scripts_dir))
     
     try:
-        from data_manager import DataManager
+        from scripts.data_manager import DataManager
     except ImportError:
         print("Warning: DataManager not available. Using local data only.")
         DataManager = None

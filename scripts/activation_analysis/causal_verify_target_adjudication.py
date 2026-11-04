@@ -20,11 +20,9 @@ import numpy as np
 import torch
 import yaml
 
-from scripts.activation_analysis.causal_verify_xf import (
-    process_setup, enum_prefixes, branch_mats, theory_tree, tree_kl, wridge,
-)
-from scripts.activation_analysis.causal_verify_rnn import (
-    build, states_last, rollout, hybrid_tree, pooled_probe, FAMS, OUT_DIR, P, ROLL, EPS,
+from epsilon_transformers.analysis.intervention_verify import (
+    process_setup, enum_prefixes, branch_mats, theory_tree, tree_kl, wridge, build,
+    states_last, rollout, hybrid_tree, pooled_probe, FAMS, OUT_DIR, P, ROLL, EPS,
 )
 
 

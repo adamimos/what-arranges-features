@@ -46,12 +46,10 @@ sweep_run_pairs = [
 # %%
 import torch
 from epsilon_transformers.analysis.load_data import S3ModelLoader
-from scripts.activation_analysis.data_loading import ModelDataManager
-from scripts.activation_analysis.belief_states import BeliefStateGenerator
+from epsilon_transformers.analysis.data_loading import ModelDataManager, ActivationExtractor
+from epsilon_transformers.analysis.belief_states import BeliefStateGenerator
 from epsilon_transformers.analysis.activation_analysis import prepare_msp_data
-from scripts.activation_analysis.data_loading import ActivationExtractor
-from scripts.activation_analysis.config import TRANSFORMER_ACTIVATION_KEYS
-from scripts.activation_analysis.config import RCOND_SWEEP_LIST
+from epsilon_transformers.analysis.config import TRANSFORMER_ACTIVATION_KEYS, RCOND_SWEEP_LIST
 from typing import Optional, List, Dict, Tuple
 import numpy as np # Make sure numpy is imported
 import os # Make sure os is imported
@@ -63,9 +61,8 @@ import os
 import numpy as np
 from collections import defaultdict
 
-from scripts.activation_analysis.regression import (
-    RegressionAnalyzer,
-    run_activation_to_beliefs_regression_kf,
+from epsilon_transformers.analysis.regression import (
+    RegressionAnalyzer, run_activation_to_beliefs_regression_kf,
 )
 
 model_data_manager = ModelDataManager(device=DEVICE, use_company_s3=True)

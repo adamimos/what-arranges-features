@@ -13,8 +13,8 @@ from pathlib import Path
 
 import numpy as np
 
-from scripts.activation_analysis.run_shuffle_analysis import load_run_config, list_checkpoints
-from scripts.activation_analysis.stage2_multiseed_weighted_r2 import build_process_targets
+from epsilon_transformers.analysis.checkpoints import load_run_config, list_checkpoints
+from epsilon_transformers.analysis.multiseed_probe import build_process_targets
 import importlib.util, sys
 spec = importlib.util.spec_from_file_location("fm", "scripts/paper_metrics/fig2_metrics_multiseed.py")
 fm = importlib.util.module_from_spec(spec); spec.loader.exec_module(fm)

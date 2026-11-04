@@ -29,104 +29,14 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import yaml
 
-from epsilon_transformers.process.transition_matrices import get_matrix_from_args
-from scripts.activation_analysis.causal_verify_xf import (
-    process_setup, enum_prefixes, branch_mats, theory_tree, tree_kl,
-    wridge, wr2, cv_ridge_r2,
+from epsilon_transformers.analysis.intervention_verify import (
+    process_setup, enum_prefixes, branch_mats, theory_tree, tree_kl, wridge, wr2, cv_ridge_r2,
+    OUT_DIR, N_CTX, P, ROLL, EPS, FAMS, build, states_last, rollout, hybrid_tree,
+    pooled_probe,
 )
-
-OUT_DIR = Path("results/causal_transplant/verify")
-N_CTX = 10
-P = 7
-ROLL = N_CTX - P
-EPS = 1e-12
-FAMS = [("results/qrrxor_robust_gru", "GRU"),
-        ("results/qrrxor_robust_lstm", "LSTM"),
-        ("results/qrrxor_robust_rnn", "RNN")]
-
-
-class Wrap(nn.Module):
-    def __init__(self, rnn, out):
-        super().__init__()
-        self.rnn = rnn
-        self.output_layer = out
-
-
-def build(mc, vocab, device, state=None, init_seed=None):
-    if init_seed is not None:
-        torch.manual_seed(init_seed)
-    cls = getattr(nn, mc["rnn_type"].upper())
-    rnn = cls(input_size=vocab, hidden_size=mc["hidden_size"],
-              num_layers=mc["num_layers"], batch_first=True)
-    m = Wrap(rnn, nn.Linear(mc["hidden_size"], vocab)).to(device)
-    if state is not None:
-        m.load_state_dict(state)
-    m.eval()
-    return m
-
-
-def states_last(model, toks, vocab, device, is_lstm):
-    """Carried state after consuming toks: (N, D), h-layers then c-layers."""
-    x = torch.from_numpy(toks).long().to(device)
-    oh = F.one_hot(x, num_classes=vocab).float()
-    with torch.no_grad():
-        _, h = model.rnn(oh)
-    parts = h if is_lstm else (h,)
-    return torch.cat([p[i] for p in parts for i in range(p.shape[0])], 1)
-
-
-def rollout(model, states, branches, L, H, is_lstm, device, vocab=2):
-    """Step probs of branch tokens from given carried states: (n, nb, ROLL)."""
-    n, nb = len(states), len(branches)
-    st = states if torch.is_tensor(states) else torch.tensor(
-        states, dtype=torch.float32, device=device)
-    with torch.no_grad():
-        p1 = F.softmax(model.output_layer(st[:, (L - 1) * H:L * H]), -1).cpu().numpy()
-    out = np.zeros((n, nb, ROLL))
-    out[:, :, 0] = p1[:, branches[:, 0]]
-    rep = st.repeat_interleave(nb, 0)                       # (n*nb, D)
-    n_parts = 2 if is_lstm else 1
-    blocks = rep.view(-1, n_parts * L, H).permute(1, 0, 2).contiguous()
-    h0 = (blocks[:L], blocks[L:]) if is_lstm else blocks
-    bt = torch.from_numpy(np.tile(branches[:, :ROLL - 1], (n, 1))).long().to(device)
-    oh = F.one_hot(bt, num_classes=vocab).float()
-    with torch.no_grad():
-        o, _ = model.rnn(oh, h0)
-        pr = F.softmax(model.output_layer(o), -1).cpu().numpy()  # (n*nb, ROLL-1, vocab)
-    pr = pr.reshape(n, nb, ROLL - 1, vocab)
-    for s in range(1, ROLL):
-        out[:, :, s] = pr[:, np.arange(nb), s - 1, branches[:, s]]
-    return out
-
-
-def hybrid_tree(T, rev, bel_w, bel_v, branches):
-    """P(u1|eta_w) * P(u2..|u1, eta_v): donor conditional with w's first step."""
-    p1w = np.stack([np.clip(bel_w @ T[x] @ rev, EPS, None) for x in range(T.shape[0])], 1)
-    p1w /= p1w.sum(1, keepdims=True)
-    out = np.zeros((len(bel_w), len(branches)))
-    for u, tk in enumerate(branches):
-        M = np.eye(T.shape[1])
-        for x in tk:
-            M = M @ T[x]
-        num = np.clip(bel_v @ M @ rev, EPS, None)             # P(u1..uk | eta_v)
-        den = np.clip(bel_v @ T[tk[0]] @ rev, EPS, None)      # P(u1 | eta_v)
-        out[:, u] = p1w[:, tk[0]] * num / den
-    return out / out.sum(1, keepdims=True)
-
-
-def pooled_probe(model, T, rev, b0, vocab, device, is_lstm):
-    Xs, Ys, Ws = [], [], []
-    for plen in range(4, N_CTX):
-        tk, bl, w, _ = enum_prefixes(T, rev, b0, plen)
-        Xs.append(states_last(model, tk, vocab, device, is_lstm).cpu().numpy())
-        Ys.append(bl); Ws.append(w)
-    X, Y, W = np.concatenate(Xs), np.concatenate(Ys), np.concatenate(Ws)
-    beta = wridge(X, Y, W, 1e-6)
-    return X, Y, W, beta
 
 
 # ---------------------------------------------------------------------------

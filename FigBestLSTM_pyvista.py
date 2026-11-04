@@ -26,16 +26,10 @@ from scipy.linalg import null_space
 os.environ.setdefault("PYVISTA_OFF_SCREEN", "true")
 import pyvista as pv
 
-from scripts.activation_analysis.run_shuffle_analysis import (
-    list_checkpoints, _maybe_pca,
-)
-from scripts.activation_analysis.enumerate_process import enumerate_process_data
-from scripts.activation_analysis.regression import (
-    run_activation_to_beliefs_regression_kf,
-)
-from scripts.activation_analysis.quick_lstm_analyze import (
-    load_lstm, extract_lstm_activations,
-)
+from epsilon_transformers.analysis.checkpoints import list_checkpoints, _maybe_pca
+from epsilon_transformers.analysis.process_targets import enumerate_process_data
+from epsilon_transformers.analysis.regression import run_activation_to_beliefs_regression_kf
+from epsilon_transformers.analysis.lstm_checkpoints import load_lstm, extract_lstm_activations
 
 
 RCOND_SWEEP_LIST = [1e-15, 1e-12, 1e-10, 1e-8, 1e-6, 1e-4, 1e-2]
@@ -523,7 +517,7 @@ def _compute_transformer_concat(run_dir, proc, device):
     if proc is None:
         return None
     try:
-        from scripts.activation_analysis.run_shuffle_analysis import (
+        from epsilon_transformers.analysis.checkpoints import (
             list_checkpoints as _list_ckpts, load_model as _load_tf,
             extract_activations as _extract_tf, _maybe_pca as _pca,
         )

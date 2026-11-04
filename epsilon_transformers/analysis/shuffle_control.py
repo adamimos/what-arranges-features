@@ -17,8 +17,8 @@ import torch
 from typing import Dict, Optional, Tuple
 from tqdm.auto import tqdm
 
-from scripts.activation_analysis.regression import run_activation_to_beliefs_regression_kf
-from scripts.activation_analysis.config import RCOND_SWEEP_LIST
+from epsilon_transformers.analysis.regression import run_activation_to_beliefs_regression_kf
+from epsilon_transformers.analysis.config import RCOND_SWEEP_LIST
 
 
 # ---------------------------------------------------------------------------

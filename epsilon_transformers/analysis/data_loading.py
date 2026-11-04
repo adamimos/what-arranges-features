@@ -13,8 +13,10 @@ from epsilon_transformers.analysis.load_data import S3ModelLoader
 from epsilon_transformers.analysis.activation_analysis import prepare_msp_data
 from epsilon_transformers.training.networks import create_RNN
 
-from scripts.activation_analysis.config import NUM_RANDOM_BASELINES, TRANSFORMER_ACTIVATION_KEYS
-from scripts.activation_analysis.utils import setup_logging
+from epsilon_transformers.analysis.config import (
+    NUM_RANDOM_BASELINES, TRANSFORMER_ACTIVATION_KEYS,
+)
+from epsilon_transformers.analysis.utils import setup_logging
 
 # Module logger
 logger = logging.getLogger("data_loading")
@@ -217,7 +219,7 @@ class ModelDataManager:
 
     def save_markov_data(self, markov_data, process_config, max_order):
         """Save Markov approximation data to cache (local or S3)."""
-        from scripts.activation_analysis.utils import get_markov_cache_key
+        from epsilon_transformers.analysis.utils import get_markov_cache_key
         
         cache_key = get_markov_cache_key(process_config, max_order)
         
@@ -274,7 +276,7 @@ class ModelDataManager:
 
     def load_markov_data(self, process_config, max_order):
         """Load Markov approximation data from cache (local or S3)."""
-        from scripts.activation_analysis.utils import get_markov_cache_key
+        from epsilon_transformers.analysis.utils import get_markov_cache_key
         
         cache_key = get_markov_cache_key(process_config, max_order)
         
@@ -374,8 +376,8 @@ class ModelDataManager:
 
 def get_markov_beliefs(config, order, cache=None):
     """Load Markov beliefs."""
-    from scripts.activation_analysis.utils import get_markov_cache_key
+    from epsilon_transformers.analysis.utils import get_markov_cache_key
 
 def generate_markov_beliefs(config, order, cache=None):
     """Generate Markov beliefs from scratch."""
-    from scripts.activation_analysis.utils import get_markov_cache_key
+    from epsilon_transformers.analysis.utils import get_markov_cache_key

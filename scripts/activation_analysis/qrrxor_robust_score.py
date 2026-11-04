@@ -35,17 +35,10 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-import torch
 
-from scripts.activation_analysis.run_shuffle_analysis import (
-    load_run_config, list_checkpoints,
-)
-from scripts.activation_analysis.enumerate_process import enumerate_process_data
-from scripts.activation_analysis.shuffle_control_simple import _weighted_r2
-from epsilon_transformers.process.transition_matrices import get_matrix_from_args
-from scripts.activation_analysis.hpsearch_qrrxor_score import (
-    load_rnn, extract_transformer, extract_rnn, weighted_corr, final_val_lb,
-    N_FOLDS, RCOND, RCOND_STAB, CONV_THRESH, SHUFFLE_SEED,
+from epsilon_transformers.analysis.checkpoints import load_run_config
+from epsilon_transformers.analysis.qrrxor_scoring import (
+    RCOND_STAB, CONV_THRESH, SHUFFLE_SEED, build_targets, analyze_run, t_interval, _msd,
 )
 
 GROUPS = [
@@ -54,74 +47,6 @@ GROUPS = [
     ("transformer", "fragile", "results/20260424220339"),
     ("LSTM",        "fragile", "results/20260503215800_lstm_default_cpu"),
 ]
-
-
-def build_targets(cfg):
-    proc = enumerate_process_data(cfg)
-    n_ctx = cfg["model_config"]["n_ctx"]
-    contexts = proc["seqs"].numpy()[:, :n_ctx]
-    T = get_matrix_from_args(**cfg["process_config"])
-    vocab = int(T.shape[0]); assert vocab == 2, f"expected vocab 2, got {vocab}"
-    w = proc["weights"]; bel = proc["beliefs"]
-    # ntp_proj: belief projected onto col(E) (NTP-relevant subspace)
-    wn = w / w.sum()
-    b_mean = (bel * wn[:, None]).sum(axis=0)
-    ntp_proj = b_mean + (bel - b_mean) @ proc["P_E"]
-    rng = np.random.default_rng(SHUFFLE_SEED)
-    perm = rng.permutation(len(w))
-    return {
-        "contexts": contexts, "n_ctx": n_ctx, "vocab": vocab,
-        "belief": bel, "shuffled": proc["shuffled"], "ntp_proj": ntp_proj,
-        "ntp_opt": proc["ntp"][:, 0], "weights": w, "perm": perm,
-        "belief_dim": int(bel.shape[1]), "N": int(len(w)),
-    }
-
-
-def r2(acts, tgt, proc, rcond):
-    p = proc["perm"]; w = proc["weights"]
-    return _weighted_r2(acts[p], tgt[p], w[p], n_folds=N_FOLDS, rcond=rcond)
-
-
-def analyze_run(run_dir: Path, config_label, arch, proc, device):
-    cfg = load_run_config(str(run_dir))
-    seed = cfg["model_config"].get("seed", "?")
-    val_lb = final_val_lb(run_dir)
-    ckpt = list_checkpoints(str(run_dir))[-1]
-    if arch == "transformer":
-        acts, p0 = extract_transformer(run_dir, ckpt, proc["contexts"], device)
-    else:
-        model = load_rnn(run_dir, ckpt, device, proc["vocab"])
-        acts, p0 = extract_rnn(model, proc["contexts"], proc["vocab"], device)
-        del model
-    bel_stab = r2(acts, proc["belief"], proc, RCOND_STAB)
-    bel_raw = r2(acts, proc["belief"], proc, RCOND)
-    shuf_stab = r2(acts, proc["shuffled"], proc, RCOND_STAB)
-    ntpp_stab = r2(acts, proc["ntp_proj"], proc, RCOND_STAB)
-    return {
-        "arch": arch, "config": config_label, "seed": seed,
-        "run_dir": run_dir.name, "val_loss_lb": val_lb,
-        "converged": bool(val_lb < CONV_THRESH),
-        "tokens_seen": int(ckpt.replace(".pt", "")),
-        "act_absmax": float(np.abs(acts).max()),
-        "belief_r2": float(bel_stab), "belief_r2_raw": float(bel_raw),
-        "shuffled_r2": float(shuf_stab), "ntp_proj_r2": float(ntpp_stab),
-        "gap": float(bel_stab - shuf_stab),
-        "ntp_corr": float(weighted_corr(p0, proc["ntp_opt"], proc["weights"])),
-    }
-
-
-def t_interval(vals, alpha=0.05):
-    from scipy import stats
-    v = np.asarray(vals, float); n = len(v); m = float(v.mean())
-    if n < 2:
-        return m, float("nan")
-    sd = float(v.std(ddof=1))
-    return m, float(stats.t.ppf(1 - alpha / 2, df=n - 1) * sd / np.sqrt(n))
-
-
-def _msd(vals):
-    v = np.asarray(vals, float)
-    return float(v.mean()), (float(v.std(ddof=1)) if len(v) > 1 else float("nan"))
 
 
 def aggregate(results):

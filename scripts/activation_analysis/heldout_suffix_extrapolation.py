@@ -53,9 +53,9 @@ import torch
 import yaml
 from transformer_lens import HookedTransformer, HookedTransformerConfig
 
-from scripts.activation_analysis.causal_verify_xf import (
-    process_setup, enum_prefixes, cv_ridge_r2, load_xf)
-from scripts.activation_analysis.causal_verify_rnn import build, states_last
+from epsilon_transformers.analysis.intervention_verify import (
+    process_setup, enum_prefixes, cv_ridge_r2, load_xf, build, states_last,
+)
 
 XF_DIR = Path("results/qrrxor_robust_transformer")
 GRU_DIR = Path("results/qrrxor_robust_gru")

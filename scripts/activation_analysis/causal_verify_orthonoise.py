@@ -24,11 +24,10 @@ import torch
 import torch.nn.functional as F
 import yaml
 
-from scripts.activation_analysis.causal_verify_xf import (
-    process_setup, enum_prefixes, wridge, cv_ridge_r2, load_xf, run_cfg,
-    XF_DIR, OUT_DIR, EPS,
+from epsilon_transformers.analysis.intervention_verify import (
+    process_setup, enum_prefixes, wridge, cv_ridge_r2, load_xf, run_cfg, XF_DIR, OUT_DIR, EPS,
+    build, FAMS,
 )
-from scripts.activation_analysis.causal_verify_rnn import build, FAMS
 
 N_CTX = 10
 N_DRAWS = 3

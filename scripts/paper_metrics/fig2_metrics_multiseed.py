@@ -24,8 +24,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from scripts.activation_analysis.run_shuffle_analysis import load_run_config, list_checkpoints
-from scripts.activation_analysis.stage2_multiseed_weighted_r2 import (
+from epsilon_transformers.analysis.checkpoints import load_run_config, list_checkpoints
+from epsilon_transformers.analysis.multiseed_probe import (
     build_process_targets, extract_transformer_concat, load_rnn, extract_rnn_concat,
     final_val_lb, CONV_THRESH, N_FOLDS, RCOND,
 )

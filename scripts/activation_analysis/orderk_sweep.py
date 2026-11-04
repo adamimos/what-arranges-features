@@ -43,12 +43,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from scripts.activation_analysis.run_shuffle_analysis import (
+from epsilon_transformers.analysis.checkpoints import (
     load_run_config, list_checkpoints, load_model,
 )
-from scripts.activation_analysis.enumerate_process import enumerate_process_data
-from scripts.activation_analysis.shuffle_control_simple import _weighted_r2
-from scripts.activation_analysis.bloch_multiseed_weighted_r2 import (
+from epsilon_transformers.analysis.process_targets import enumerate_process_data
+from epsilon_transformers.analysis.weighted_probe import _weighted_r2
+from epsilon_transformers.analysis.multiseed_probe import (
     extract_transformer_concat, load_rnn, extract_rnn_concat,
 )
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args

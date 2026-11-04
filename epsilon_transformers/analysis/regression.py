@@ -9,8 +9,10 @@ import traceback
 from tqdm.auto import tqdm
 from collections import defaultdict
 
-from scripts.activation_analysis.utils import standardize, unstandardize_coefficients, report_variance_explained, setup_logging
-from scripts.activation_analysis.config import REPORT_VARIANCE, DO_BASELINE
+from epsilon_transformers.analysis.utils import (
+    standardize, unstandardize_coefficients, report_variance_explained, setup_logging,
+)
+from epsilon_transformers.analysis.config import REPORT_VARIANCE, DO_BASELINE
 
 # Module logger
 logger = logging.getLogger("regression")
@@ -925,7 +927,8 @@ def run_single_rcond_sweep(regression_analyzer, activation, belief_states, nn_wo
     results = []
     
     # Pre-compute SVD (this is the expensive part)
-    from scripts.activation_analysis.regression import compute_efficient_pinv_from_svd, standardize
+    from epsilon_transformers.analysis.regression import compute_efficient_pinv_from_svd
+    from epsilon_transformers.analysis.utils import standardize
     
     # Reshape tensors
     X = activation.view(-1, activation.shape[-1])
@@ -982,7 +985,7 @@ def run_single_rcond_sweep_with_predictions_flat(regression_analyzer, activation
     best_norm_dist = float('inf')
     
     # Pre-compute SVD (this is the expensive part)
-    from scripts.activation_analysis.regression import compute_efficient_pinv_from_svd
+    from epsilon_transformers.analysis.regression import compute_efficient_pinv_from_svd
     
     # Reshape tensors
     X = activation  
@@ -1077,7 +1080,7 @@ def run_single_rcond_sweep_with_predictions(regression_analyzer, activation, bel
     best_norm_dist = float('inf')
     
     # Pre-compute SVD (this is the expensive part)
-    from scripts.activation_analysis.regression import compute_efficient_pinv_from_svd
+    from epsilon_transformers.analysis.regression import compute_efficient_pinv_from_svd
     
     # Reshape tensors
     X = activation.view(-1, activation.shape[-1])
@@ -1173,7 +1176,7 @@ def run_paul_rcond_sweep_with_sklearn_predictions_flat(regression_analyzer, acti
     best_norm_dist_new = float('inf')
     
     # Import our helper function (used for both old and new methods)
-    from scripts.activation_analysis.regression import compute_efficient_pinv_from_svd
+    from epsilon_transformers.analysis.regression import compute_efficient_pinv_from_svd
     
     # Reshape tensors (assuming they're already flattened as needed)
     X = activation   # shape: (n, d)
@@ -1370,7 +1373,7 @@ def run_old_method_train_split_choice(
           "test_weights"
     """
     import torch
-    from scripts.activation_analysis.regression import compute_efficient_pinv_from_svd
+    from epsilon_transformers.analysis.regression import compute_efficient_pinv_from_svd
 
     device = train_activations.device
 

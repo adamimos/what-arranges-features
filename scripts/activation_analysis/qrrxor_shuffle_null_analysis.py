@@ -33,18 +33,19 @@ from pathlib import Path
 import joblib
 import numpy as np
 import torch
-import torch.nn as nn
 
-from scripts.activation_analysis.run_shuffle_analysis import (
+from epsilon_transformers.analysis.checkpoints import (
     load_run_config, list_checkpoints, load_model, load_random_model, _maybe_pca,
 )
-from scripts.activation_analysis.enumerate_process import enumerate_process_data
-from scripts.activation_analysis.shuffle_control import (
+from epsilon_transformers.analysis.process_targets import enumerate_process_data
+from epsilon_transformers.analysis.shuffle_control import (
     _paper_regression_r2, geometric_shuffle, decompose_beliefs,
 )
-from scripts.activation_analysis.shuffle_control_simple import _weighted_r2
+from epsilon_transformers.analysis.weighted_probe import _weighted_r2
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args
-from epsilon_transformers.training.networks import RNNWrapper
+from epsilon_transformers.analysis.qrrxor_models import (
+    final_val_lb, build_rnn, transformer_concat, rnn_concat,
+)
 
 PCA_RANK = 0.95
 N_SHUFFLES = 200          # == run_shuffle_analysis.N_SHUFFLES (PCA null, primary)
@@ -60,53 +61,7 @@ GROUPS = [
 ]
 
 
-def final_val_lb(run_dir: Path) -> float:
-    f = run_dir / "loss.csv"
-    if not f.exists():
-        return float("inf")
-    import csv as _csv
-    with open(f) as fh:
-        rows = list(_csv.DictReader(fh))
-    return float(rows[-1]["val_loss_mean"]) if rows else float("inf")
-
-
 # ---- activation extraction (concat all-layer @ last pos) ----
-def transformer_concat(model, contexts, device, bs=8192):
-    names = [f"blocks.{i}.hook_resid_pre" for i in range(model.cfg.n_layers)]
-    inp = torch.from_numpy(contexts).long()
-    chunks = {k: [] for k in names}
-    with torch.no_grad():
-        for s in range(0, inp.shape[0], bs):
-            _, cache = model.run_with_cache(inp[s:s + bs].to(device), names_filter=names)
-            for k in names:
-                chunks[k].append(cache[k][:, -1, :].cpu().numpy())
-    return np.concatenate([np.concatenate(chunks[k], 0) for k in names], axis=1)
-
-
-def build_rnn(cfg, vocab, device, state=None, seed=None):
-    mc = cfg["model_config"]
-    if seed is not None:
-        torch.manual_seed(seed)
-    cls = getattr(nn, mc["rnn_type"].upper())
-    rnn = cls(input_size=vocab, hidden_size=mc["hidden_size"], num_layers=mc["num_layers"],
-              dropout=mc.get("dropout", 0.0), batch_first=True,
-              bidirectional=mc.get("bidirectional", False)).to(device)
-    out = nn.Linear(mc["hidden_size"], vocab).to(device)
-    model = RNNWrapper(rnn, out).to(device)
-    if state is not None:
-        model.load_state_dict(state)
-    model.eval()
-    return model
-
-
-def rnn_concat(model, contexts, vocab, device):
-    x = torch.from_numpy(contexts).long().to(device)
-    oh = torch.zeros(*x.shape, vocab, device=device)
-    oh.scatter_(2, x.unsqueeze(-1), 1.0)
-    with torch.no_grad():
-        _, hidden = model.rnn(oh)
-        h_n = hidden[0] if isinstance(hidden, tuple) else hidden
-    return torch.cat([h_n[i] for i in range(h_n.shape[0])], dim=1).cpu().numpy()
 
 
 def get_acts(arch, run_dir, ckpt, proc, device, random=False):

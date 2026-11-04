@@ -35,17 +35,16 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from scripts.activation_analysis.run_shuffle_analysis import (
+from epsilon_transformers.analysis.checkpoints import (
     load_run_config, list_checkpoints, load_model,
 )
-from scripts.activation_analysis.enumerate_process import _stationary_belief
-from scripts.activation_analysis.shuffle_control import (
+from epsilon_transformers.analysis.process_targets import _stationary_belief
+from epsilon_transformers.analysis.shuffle_control import (
     compute_emission_matrix, compute_projections,
 )
-from scripts.activation_analysis.causal_phase0 import prefix_beliefs
-from scripts.activation_analysis.causal_belief_transplant import (
-    branch_tokens, theory_tree, tree_kl, stepwise_kls_from_probs, select_pairs,
-    PATCH_P, ROLL, EPS,
+from epsilon_transformers.analysis.interventions import (
+    prefix_beliefs, branch_tokens, theory_tree, tree_kl, stepwise_kls_from_probs,
+    select_pairs, PATCH_P, ROLL, EPS,
 )
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args
 

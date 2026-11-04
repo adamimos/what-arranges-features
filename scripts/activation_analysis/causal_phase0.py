@@ -33,15 +33,18 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from scripts.activation_analysis.run_shuffle_analysis import (
+from epsilon_transformers.analysis.checkpoints import (
     load_run_config, list_checkpoints, load_model,
 )
-from scripts.activation_analysis.enumerate_process import _stationary_belief
-from scripts.activation_analysis.shuffle_control import (
+from epsilon_transformers.analysis.process_targets import _stationary_belief
+from epsilon_transformers.analysis.shuffle_control import (
     compute_emission_matrix, compute_projections,
 )
-from scripts.activation_analysis.qrrxor_shuffle_null_analysis import build_rnn
+from epsilon_transformers.analysis.qrrxor_models import build_rnn
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args
+from epsilon_transformers.analysis.interventions import (
+    prefix_beliefs, fit_affine, weighted_r2_eval, rnn_states_all_steps,
+)
 
 RNN_DIR = Path("results/qrrxor_robust_rnn")
 XF_DIR = Path("results/qrrxor_robust_transformer")
@@ -53,36 +56,6 @@ ROLL_STEPS = N_CTX - PATCH_P   # 3 future predictions (tokens 8,9,10 -> indices 
 # ---------------------------------------------------------------------------
 # A. Process machinery
 # ---------------------------------------------------------------------------
-
-def prefix_beliefs(T, rev, b0, P):
-    """All vocab^P prefixes (lex order, big-endian over time): tokens, belief,
-    probability, p(x=0|belief)."""
-    vocab, dim = T.shape[0], T.shape[1]
-    n = vocab ** P
-    toks = np.zeros((n, P), dtype=np.int64)
-    bel = np.zeros((n, dim))
-    wt = np.zeros(n)
-    for i in range(n):
-        s = i
-        tk = np.zeros(P, dtype=np.int64)
-        for t in range(P):
-            tk[P - 1 - t] = s % vocab
-            s //= vocab
-        b = b0.copy()
-        prob = 1.0
-        for x in tk:
-            p_x = max(float(b @ T[x] @ rev), 0.0)
-            prob *= p_x
-            b_new = b @ T[x]
-            nrm = float(b_new @ rev)
-            if nrm > 0:
-                b = b_new / nrm
-        toks[i] = tk
-        bel[i] = b
-        wt[i] = prob
-    wt = wt / wt.sum()
-    p0 = bel @ T[0] @ rev
-    return toks, bel, wt, p0
 
 
 def string_probs(T, rev, bel, k):
@@ -151,14 +124,6 @@ def stepwise_theory_kls(T, rev, b_from, b_to, steps):
 # Weighted probe (matches _weighted_r2 conventions; also returns the map)
 # ---------------------------------------------------------------------------
 
-def fit_affine(X, Y, w, rcond=1e-10):
-    """Weighted affine fit Y ~ [1, X] beta. Returns beta ((D+1) x dy)."""
-    w = w / w.sum()
-    sw = np.sqrt(w)[:, None]
-    Xb = np.hstack([np.ones((len(X), 1)), X])
-    beta, *_ = np.linalg.lstsq(Xb * sw, Y * sw, rcond=rcond)
-    return beta
-
 
 def weighted_r2_cv(X, Y, w, n_folds=5, rcond=1e-10, seed=0):
     """CV weighted R², rows pre-shuffled (rows must be unique units)."""
@@ -180,38 +145,6 @@ def weighted_r2_cv(X, Y, w, n_folds=5, rcond=1e-10, seed=0):
         sst = (wt[:, None] * (Y[te] - ym) ** 2).sum()
         r2s.append(1 - ssr / sst if sst > 0 else 0.0)
     return float(np.mean(r2s))
-
-
-def weighted_r2_eval(beta, X, Y, w):
-    Yp = np.hstack([np.ones((len(X), 1)), X]) @ beta
-    w = w / w.sum()
-    ym = (Y * w[:, None]).sum(0)
-    ssr = (w[:, None] * (Y - Yp) ** 2).sum()
-    sst = (w[:, None] * (Y - ym) ** 2).sum()
-    return float(1 - ssr / sst) if sst > 0 else 0.0
-
-
-# ---------------------------------------------------------------------------
-# RNN state collection
-# ---------------------------------------------------------------------------
-
-def rnn_states_all_steps(model, seqs, vocab, device, bs=2048):
-    """Full carried state at every step. Returns (N, T, D) float32 where
-    D = L*H for RNN/GRU and 2*L*H for LSTM (all h layers, then all c layers)."""
-    outs = []
-    with torch.no_grad():
-        for s in range(0, len(seqs), bs):
-            x = torch.from_numpy(seqs[s:s + bs]).long().to(device)
-            oh = torch.nn.functional.one_hot(x, num_classes=vocab).float()
-            h = None
-            per_step = []
-            for t in range(x.shape[1]):
-                _, h = model.rnn(oh[:, t:t + 1], h)
-                parts = h if isinstance(h, tuple) else (h,)   # LSTM: (h, c)
-                per_step.append(torch.cat(
-                    [p[i] for p in parts for i in range(p.shape[0])], dim=1))
-            outs.append(torch.stack(per_step, dim=1).cpu().numpy())
-    return np.concatenate(outs, 0)
 
 
 # ---------------------------------------------------------------------------

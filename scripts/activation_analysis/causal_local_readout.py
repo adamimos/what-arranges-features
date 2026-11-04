@@ -29,14 +29,13 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from scripts.activation_analysis.run_shuffle_analysis import load_run_config
-from scripts.activation_analysis.enumerate_process import _stationary_belief
-from scripts.activation_analysis.shuffle_control import (
+from epsilon_transformers.analysis.checkpoints import load_run_config
+from epsilon_transformers.analysis.process_targets import _stationary_belief
+from epsilon_transformers.analysis.shuffle_control import (
     compute_emission_matrix, compute_projections,
 )
-from scripts.activation_analysis.causal_phase0 import prefix_beliefs
-from scripts.activation_analysis.causal_belief_transplant import (
-    RNNBackend, XFBackend, PATCH_P, XF_SITES, EPS, branch_tokens,
+from epsilon_transformers.analysis.interventions import (
+    prefix_beliefs, RNNBackend, XFBackend, PATCH_P, XF_SITES, EPS, branch_tokens,
 )
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args
 

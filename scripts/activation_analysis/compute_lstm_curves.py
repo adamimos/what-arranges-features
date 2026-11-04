@@ -13,13 +13,12 @@ import torch
 import torch.nn as nn
 
 from epsilon_transformers.training.networks import RNNWrapper
-from scripts.activation_analysis.run_shuffle_analysis import (
-    prepare_process_data, list_checkpoints, _maybe_pca,
-)
-from scripts.activation_analysis.shuffle_control import (
+from epsilon_transformers.analysis.process_targets import prepare_process_data
+from epsilon_transformers.analysis.checkpoints import list_checkpoints, _maybe_pca
+from epsilon_transformers.analysis.shuffle_control import (
     _paper_regression_r2, geometric_shuffle, local_geometric_shuffle,
 )
-from scripts.activation_analysis.quick_lstm_analyze import (
+from epsilon_transformers.analysis.lstm_checkpoints import (
     load_run_config, load_lstm, extract_lstm_activations,
 )
 

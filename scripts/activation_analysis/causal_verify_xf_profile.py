@@ -15,9 +15,9 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from scripts.activation_analysis.causal_verify_xf import (
-    process_setup, enum_prefixes, branch_mats, theory_tree, tree_kl,
-    matched_pairs, load_xf, run_cfg, softmax_at, XF_DIR, OUT_DIR, P, ROLL, EPS,
+from epsilon_transformers.analysis.intervention_verify import (
+    process_setup, enum_prefixes, branch_mats, theory_tree, tree_kl, matched_pairs, load_xf,
+    run_cfg, softmax_at, XF_DIR, OUT_DIR, P, ROLL, EPS,
 )
 
 SITES = ["blocks.1.hook_resid_pre", "blocks.2.hook_resid_pre", "blocks.3.hook_resid_pre"]

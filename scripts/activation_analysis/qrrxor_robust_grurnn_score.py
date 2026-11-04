@@ -26,8 +26,8 @@ from pathlib import Path
 import joblib
 import numpy as np
 
-from scripts.activation_analysis.run_shuffle_analysis import load_run_config
-from scripts.activation_analysis.qrrxor_robust_score import (
+from epsilon_transformers.analysis.checkpoints import load_run_config
+from epsilon_transformers.analysis.qrrxor_scoring import (
     build_targets, analyze_run, t_interval, _msd, RCOND_STAB, CONV_THRESH,
 )
 

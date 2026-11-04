@@ -107,7 +107,7 @@ TRANSFORMER_ACTIVATION_KEYS = CONFIG.TRANSFORMER_ACTIVATION_KEYS
 USE_COMPANY_S3 = CONFIG.USE_COMPANY_S3
 
 # Import convenience - allows importing directly from config
-from scripts.activation_analysis.utils import setup_logging
+from epsilon_transformers.analysis.utils import setup_logging
 
 # Automatically set up logging when this module is imported
 os.makedirs(CONFIG.LOG_DIR, exist_ok=True)

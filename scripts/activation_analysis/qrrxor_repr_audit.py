@@ -49,17 +49,17 @@ import joblib
 import numpy as np
 import torch
 
-from scripts.activation_analysis.run_shuffle_analysis import (
+from epsilon_transformers.analysis.checkpoints import (
     load_run_config, list_checkpoints, load_model, load_random_model, _maybe_pca,
 )
-from scripts.activation_analysis.enumerate_process import enumerate_process_data
-from scripts.activation_analysis.shuffle_control import (
+from epsilon_transformers.analysis.process_targets import enumerate_process_data
+from epsilon_transformers.analysis.shuffle_control import (
     _paper_regression_r2, geometric_shuffle, decompose_beliefs,
 )
-from scripts.activation_analysis.qrrxor_shuffle_null_analysis import (
+from epsilon_transformers.analysis.qrrxor_models import (
     transformer_concat, build_rnn, rnn_concat, final_val_lb,
 )
-from scripts.activation_analysis.config import RCOND_SWEEP_LIST
+from epsilon_transformers.analysis.config import RCOND_SWEEP_LIST
 from epsilon_transformers.process.transition_matrices import get_matrix_from_args
 
 PCA_RANK = 0.95
