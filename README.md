@@ -38,14 +38,14 @@ Run every command below **from the repository root with `PYTHONPATH=.`**, e.g.
 | Dataset | Contents | Used by |
 |---|---|---|
 | [`SimplexAI/quantum-representations`](https://huggingface.co/datasets/SimplexAI/quantum-representations) (already public) | The original single-seed (seed 42) runs: 16 models (4 architectures x 4 processes), 201 checkpoints each, plus the pre-computed regression analysis | `paper_figures/fig2_geometry.py`, `paper_figures/fig3_training.py`, `paper_figures/appendix_rsa.py`, `paper_figures/appendix_architectures.py` (downloaded automatically with `--data-source huggingface`) |
-| `HF_DATASET_URL_TODO` | The 5-seed grid, the qRRXOR models, and pre-computed CSVs (below) | everything under `experiments/` |
+| [`SimplexAI/what-arranges-features`](https://huggingface.co/datasets/SimplexAI/what-arranges-features) | The 5-seed grid, the qRRXOR models, and pre-computed CSVs (below) | everything under `experiments/` |
 
 Download the second dataset into the repository root so that its `results/` directory lands
 at `./results/` (the `--include` filters keep the dataset's own README from overwriting this
 one):
 
 ```bash
-huggingface-cli download HF_DATASET_REPO_TODO --repo-type dataset --local-dir . \
+huggingface-cli download SimplexAI/what-arranges-features --repo-type dataset --local-dir . \
     --include "results/*" "shuffle_results_quantum_rrxor_hero_3seed/*" "figures/*"
 ```
 
@@ -184,13 +184,12 @@ See `CITATION.cff`.
 ```bibtex
 @inproceedings{shai2026arranges,
   title     = {What Arranges Features in Activation Space? Non-Classical Predictive Geometry in Next-Token Predictors},
-  author    = {Shai, Adam and Elliott, Thomas and Riechers, Paul},
+  author    = {Shai, Adam and Elliott, Thomas J. and Riechers, Paul M.},
   booktitle = {Advances in Neural Information Processing Systems},
-  year      = {2026},
-  note      = {TODO: confirm author list and add volume/pages once published}
+  year      = {2026}
 }
 ```
 
 ## License
 
-TODO: see `LICENSE_TODO.md`.
+The code is released under the MIT license (`LICENSE`). On Hugging Face, `SimplexAI/quantum-representations` is released under the MIT license and `SimplexAI/what-arranges-features` under CC-BY-4.0.
